@@ -76,7 +76,7 @@ async function api(request, env, url) {
     const placeholders = hashes.map(() => "?").join(",");
     const mineExpr = hashes.length ? `c.token_hash IN (${placeholders})` : "0";
     const { results } = await env.DB.prepare(
-      `SELECT i.id, i.name, i.url, i.price_cents, i.notes, i.priority, i.kind, i.created_at,
+      `SELECT i.id, i.name, i.url, i.image_url, i.price_cents, i.notes, i.priority, i.kind, i.created_at,
               (c.item_id IS NOT NULL) AS mine
          FROM items i LEFT JOIN claims c ON c.item_id = i.id
         WHERE c.item_id IS NULL OR ${mineExpr}
@@ -158,8 +158,8 @@ async function api(request, env, url) {
     const row = cleanItem(await body(request));
     const id = crypto.randomUUID();
     await env.DB.prepare(
-      "INSERT INTO items (id, name, url, price_cents, notes, priority, kind) VALUES (?, ?, ?, ?, ?, ?, ?)"
-    ).bind(id, row.name, row.url, row.price_cents, row.notes, row.priority, row.kind).run();
+      "INSERT INTO items (id, name, url, image_url, price_cents, notes, priority, kind) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+    ).bind(id, row.name, row.url, row.image_url, row.price_cents, row.notes, row.priority, row.kind).run();
     return json({ id }, 201);
   }
 
@@ -167,9 +167,9 @@ async function api(request, env, url) {
   if (itemMatch && method === "PUT") {
     const row = cleanItem(await body(request));
     const r = await env.DB.prepare(
-      `UPDATE items SET name = ?, url = ?, price_cents = ?, notes = ?, priority = ?, kind = ?,
+      `UPDATE items SET name = ?, url = ?, image_url = ?, price_cents = ?, notes = ?, priority = ?, kind = ?,
               updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?`
-    ).bind(row.name, row.url, row.price_cents, row.notes, row.priority, row.kind, itemMatch[1]).run();
+    ).bind(row.name, row.url, row.image_url, row.price_cents, row.notes, row.priority, row.kind, itemMatch[1]).run();
     if (!r.meta.changes) throw new HttpError(404, "That item is gone.");
     return json({ ok: true });
   }
@@ -208,7 +208,7 @@ function validToken(t) {
 
 function outItem(r) {
   const o = {
-    id: r.id, name: r.name, url: r.url, notes: r.notes,
+    id: r.id, name: r.name, url: r.url, image_url: r.image_url ?? null, notes: r.notes,
     priority: r.priority, kind: r.kind, created_at: r.created_at,
     price: r.price_cents == null ? null : r.price_cents / 100,
   };
@@ -223,6 +223,10 @@ function cleanItem(b) {
   if (url) {
     if (!/^https?:\/\//i.test(url) || url.length > 2000) throw new HttpError(400, "Links need to start with https:// or http://");
   } else url = null;
+  let image_url = typeof b.image_url === "string" ? b.image_url.trim() : "";
+  if (image_url) {
+    if (!/^https:\/\//i.test(image_url) || image_url.length > 2000) throw new HttpError(400, "Picture links need to start with https://");
+  } else image_url = null;
   let price_cents = null;
   if (b.price !== null && b.price !== undefined && b.price !== "") {
     const p = Number(b.price);
@@ -233,7 +237,7 @@ function cleanItem(b) {
   if (notes && notes.length > 1000) throw new HttpError(400, "Notes can be up to 1000 characters.");
   const priority = [1, 2, 3].includes(Number(b.priority)) ? Number(b.priority) : 2;
   const kind = b.kind === "need" ? "need" : "want";
-  return { name, url, price_cents, notes, priority, kind };
+  return { name, url, image_url, price_cents, notes, priority, kind };
 }
 
 function ownerSecret(env) {

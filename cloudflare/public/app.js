@@ -19,6 +19,20 @@ function el(tag, attrs = {}, ...kids) {
 }
 function msg(node, text, kind) { node.textContent = text || ""; node.className = "msg" + (kind ? " " + kind : ""); }
 const safeUrl = (u) => (typeof u === "string" && /^https?:\/\//i.test(u) ? u : null);
+const safeImg = (u) => (typeof u === "string" && /^https:\/\//i.test(u) ? u : null);
+
+// The item's picture, or a striped tile with its first letter when there is none
+// (or when the picture link stops working).
+function picture(item) {
+  const box = el("div", { class: "pic none", "aria-hidden": "true" }, (item.name || "?").trim().charAt(0).toUpperCase());
+  const src = safeImg(item.image_url);
+  if (src) {
+    const img = el("img", { src, alt: "", loading: "lazy", decoding: "async", referrerpolicy: "no-referrer" });
+    img.addEventListener("load", () => { box.className = "pic"; box.replaceChildren(img); });
+    img.addEventListener("error", () => img.remove());
+  }
+  return box;
+}
 
 async function api(path, { method = "GET", body } = {}) {
   const opts = { method, credentials: "same-origin", headers: {} };
@@ -109,6 +123,7 @@ async function unclaim(item, btn) {
 function fillForm(item) {
   state.editing = item ? item.id : null;
   $("f_name").value = item?.name || ""; $("f_url").value = item?.url || "";
+  $("f_image").value = item?.image_url || ""; showPreview();
   $("f_price").value = item?.price ?? ""; $("f_kind").value = item?.kind || "want";
   $("f_priority").value = String(item?.priority || 2); $("f_notes").value = item?.notes || "";
   $("formTitle").textContent = item ? "Edit item" : "Add something";
@@ -118,12 +133,23 @@ function fillForm(item) {
   if (item) { $("owner").scrollIntoView({ behavior: "smooth", block: "start" }); $("f_name").focus(); }
 }
 $("cancelEdit").addEventListener("click", () => fillForm(null));
+function showPreview() {
+  const v = $("f_image").value.trim();
+  const box = $("imgPreview");
+  if (!v) { box.hidden = true; box.replaceChildren(); return; }
+  box.hidden = false;
+  box.replaceChildren(picture({ name: $("f_name").value || "?", image_url: v }),
+    el("span", { class: "note" }, safeImg(v) ? "Preview. If it stays blank, that link isn't a picture." : "Picture links need to start with https://"));
+}
+$("f_image").addEventListener("input", showPreview);
 $("itemForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const url = $("f_url").value.trim();
   if (url && !safeUrl(url)) { msg($("formMsg"), "Links need to start with https:// or http://", "err"); return; }
+  const image = $("f_image").value.trim();
+  if (image && !safeImg(image)) { msg($("formMsg"), "Picture links need to start with https://", "err"); return; }
   const row = {
-    name: $("f_name").value.trim(), url: url || null,
+    name: $("f_name").value.trim(), url: url || null, image_url: image || null,
     price: $("f_price").value === "" ? null : Number($("f_price").value),
     kind: $("f_kind").value, priority: Number($("f_priority").value),
     notes: $("f_notes").value.trim() || null,
@@ -207,13 +233,16 @@ function render() {
     } else {
       actions.append(el("button", { type: "button", class: "primary", onclick: () => { state.openClaim = item.id; render(); } }, "I'll get this"));
     }
+    const pic = picture(item);
     return el("article", { class: "tag" + (item.priority === 1 ? " p1" : "") + (item.mine ? " mine" : "") },
-      el("div", { class: "row" },
-        el("div", { class: "name" }, link ? el("a", { href: link, target: "_blank", rel: "noopener noreferrer" }, item.name) : item.name),
-        item.price != null ? el("span", { class: "price" }, money.format(item.price)) : null),
-      el("div", { class: "meta" }, pills),
-      item.notes ? el("p", { class: "notes" }, item.notes) : null,
-      actions);
+      link ? el("a", { href: link, target: "_blank", rel: "noopener noreferrer", tabindex: "-1", "aria-hidden": "true" }, pic) : pic,
+      el("div", { class: "body" },
+        el("div", { class: "row" },
+          el("div", { class: "name" }, link ? el("a", { href: link, target: "_blank", rel: "noopener noreferrer" }, item.name) : item.name),
+          item.price != null ? el("span", { class: "price" }, money.format(item.price)) : null),
+        el("div", { class: "meta" }, pills),
+        item.notes ? el("p", { class: "notes" }, item.notes) : null,
+        actions));
   };
   const mine = owner ? [] : state.items.filter((i) => i.mine);
   const rest = state.items.filter((i) => !i.mine && show(i));

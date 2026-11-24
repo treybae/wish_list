@@ -4,7 +4,11 @@ The Cloudflare-only version of the wish list: no Supabase, free plan.
 
 - `public/` is the page (`index.html`, `app.js`, `_headers`), served as static assets.
 - `src/worker.js` handles `/api/*` and talks to the `wishlist` D1 database.
-- `migrations/` is the D1 schema plus the three items copied from Supabase.
+- `migrations/` is the D1 schema, the three items copied from Supabase, and a picture link per item (`0003`).
+
+## Pictures
+
+Each item can have a picture link (https only), pasted in the edit form. Items without one show a lettered placeholder. The Lord of the Rings and The Silmarillion covers come from the Open Library Covers API (by ISBN); Open Library has no cover for the illustrated Hobbit, so it starts on the placeholder.
 
 ## Who can do what
 
@@ -14,7 +18,7 @@ The Cloudflare-only version of the wish list: no Supabase, free plan.
 
 ## Deploy
 
-The D1 database already exists and both migrations are applied.
+The D1 database already exists and all three migrations are applied.
 
 ```sh
 cd cloudflare
