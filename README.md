@@ -2,7 +2,7 @@
 
 A wish list friends and family can browse and claim gifts from, with no account needed.
 
-- `index.html` is the whole site, served by GitHub Pages.
-- Data lives in the shared `vibe` Supabase project, in tables prefixed `wishlist_` (`supabase/schema.sql`).
-- The Supabase key in the page is the publishable key. Row-level security does the guarding: only the owner's confirmed account can add, edit or remove items, and visitors can only read unclaimed items and claim or unclaim through the `wishlist_` functions.
-- Claims are hidden in the owner view unless "Show what's been claimed" is ticked.
+There are two versions while the move to Cloudflare finishes:
+
+- **`cloudflare/`**: the new version, a Cloudflare Worker with a D1 database, meant for `wishlist.treybae.net`. See `cloudflare/README.md`.
+- **`index.html` + `supabase/`**: the original version, served by GitHub Pages with data in the shared `vibe` Supabase project (tables prefixed `wishlist_`). It stays as is until the Cloudflare version is live.
