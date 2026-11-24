@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trey's Wish List</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: one centered column of gift tags; owner tools slide in above the list. */
+:root {
+  --bg: #f3f6f4;
+  --surface: #ffffff;
+  --ink: #17302b;
+  --muted: #5b6f6a;
+  --line: #d6e0dc;
+  --pine: #1f4d45;
+  --pine-ink: #ffffff;
+  --gold: #c98a0b;
+  --gold-soft: #fbefd2;
+  --danger: #b3261e;
+  --ok: #2e7d4f;
+  --display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --radius: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1a18; --surface: #172522; --ink: #e4eeeb; --muted: #9db2ac; --line: #2a3d39;
+    --pine: #6fc3b1; --pine-ink: #0d1d1a; --gold: #f0b93f; --gold-soft: #3a2f14;
+    --danger: #ff8a80; --ok: #7bd3a0; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1a18; --surface: #172522; --ink: #e4eeeb; --muted: #9db2ac; --line: #2a3d39;
+  --pine: #6fc3b1; --pine-ink: #0d1d1a; --gold: #f0b93f; --gold-soft: #3a2f14;
+  --danger: #ff8a80; --ok: #7bd3a0; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--ink); font: 15px/1.55 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: max(20px, env(safe-area-inset-top, 0px)) max(40px, env(safe-area-inset-bottom, 0px));
+}
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 22px; }
+h1, h2 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(30px, 6vw, 44px); font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 20px; font-weight: 700; }
+header { display: grid; gap: 8px; padding-top: 12px; }
+header p { margin: 0; color: var(--muted); max-width: 60ch; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); padding: 8px 16px; font-weight: 600; }
+button.primary { background: var(--pine); color: var(--pine-ink); border-color: var(--pine); }
+button.ghost { background: transparent; border-color: transparent; padding-inline: 8px; color: var(--muted); }
+button.danger { color: var(--danger); }
+button:disabled { opacity: .55; cursor: default; }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+a { color: var(--pine); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.list { display: grid; gap: 12px; }
+.tag {
+  position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 16px 18px 16px 30px; display: grid; gap: 8px; min-width: 0;
+}
+/* the punched hole of a gift tag */
+.tag::before {
+  content: ""; position: absolute; left: 11px; top: 20px; width: 9px; height: 9px; border-radius: 50%;
+  background: var(--bg); box-shadow: inset 0 0 0 1.5px var(--line);
+}
+.tag.p1::before { box-shadow: inset 0 0 0 2px var(--gold); }
+.row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; justify-content: space-between; }
+.name { font-family: var(--display); font-size: 18px; font-weight: 500; min-width: 0; overflow-wrap: anywhere; }
+.price { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px; }
+.pill { border-radius: 999px; padding: 2px 9px; border: 1px solid var(--line); color: var(--muted); }
+.pill.need { border-color: var(--pine); color: var(--pine); }
+.pill.p1 { background: var(--gold-soft); border-color: transparent; color: var(--ink); }
+.pill.claimed { background: var(--ok); color: var(--surface); border-color: transparent; }
+.notes { margin: 0; color: var(--muted); overflow-wrap: anywhere; white-space: pre-wrap; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.claimbox { display: grid; gap: 8px; padding-top: 4px; }
+.claimbox label { font-size: 13px; color: var(--muted); }
+input, select, textarea { width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; }
+textarea { min-height: 70px; resize: vertical; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; display: grid; gap: 14px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.field { display: grid; gap: 4px; min-width: 0; }
+.field span { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.mine { border-style: dashed; border-color: var(--pine); }
+.empty { color: var(--muted); text-align: center; padding: 28px 12px; border: 1px dashed var(--line); border-radius: var(--radius); }
+.msg { font-size: 14px; min-height: 1em; margin: 0; }
+.msg.err { color: var(--danger); }
+.msg.ok { color: var(--ok); }
+.ownerbar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.switch { display: inline-flex; gap: 8px; align-items: center; font-size: 14px; }
+.switch input { width: auto; }
+footer { text-align: center; color: var(--muted); font-size: 13px; }
+@media (prefers-reduced-motion: no-preference) { .tag { transition: opacity .2s; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <span class="eyebrow" id="eyebrow">Wish list</span>
+    <h1 id="title">Trey's Wish List</h1>
+    <p id="lede">Pick something, tap <strong>I'll get this</strong>, and it comes off the list so nobody else buys it too.</p>
+  </header>
+
+  <section id="setup" class="panel" hidden>
+    <h2>Almost ready</h2>
+    <p class="msg">This page isn't connected to its database yet.</p>
+  </section>
+
+  <!-- Owner tools -->
+  <section id="owner" hidden>
+    <div class="panel">
+      <div class="ownerbar">
+        <h2 id="formTitle">Add something</h2>
+        <div class="actions">
+          <label class="switch"><input type="checkbox" id="reveal"> Show what's been claimed</label>
+          <button class="ghost" id="signOut" type="button">Sign out</button>
+        </div>
+      </div>
+      <form id="itemForm" class="grid2" autocomplete="off">
+        <label class="field" style="grid-column: 1 / -1"><span>What is it</span><input id="f_name" required maxlength="200" placeholder="e.g. Merino hiking socks, size L"></label>
+        <label class="field" style="grid-column: 1 / -1"><span>Link (optional)</span><input id="f_url" type="url" maxlength="2000" placeholder="https://"></label>
+        <label class="field"><span>Price (optional)</span><input id="f_price" type="number" min="0" step="0.01" inputmode="decimal" placeholder="25.00"></label>
+        <label class="field"><span>Want or need</span><select id="f_kind"><option value="want">Want</option><option value="need">Need</option></select></label>
+        <label class="field"><span>How much</span><select id="f_priority"><option value="1">Really want</option><option value="2" selected>Would like</option><option value="3">Nice to have</option></select></label>
+        <label class="field" style="grid-column: 1 / -1"><span>Notes (optional)</span><textarea id="f_notes" maxlength="1000" placeholder="Color, size, model, where to buy"></textarea></label>
+        <div class="actions" style="grid-column: 1 / -1">
+          <button class="primary" type="submit" id="saveBtn">Add to list</button>
+          <button type="button" id="cancelEdit" hidden>Cancel edit</button>
+          <p class="msg" id="formMsg" role="status"></p>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section id="signin" class="panel" hidden>
+    <h2 id="signinTitle">Sign in to edit your list</h2>
+    <form id="signinForm" class="grid2">
+      <label class="field"><span>Email</span><input id="s_email" type="email" autocomplete="username" required></label>
+      <label class="field"><span>Password</span><input id="s_pass" type="password" autocomplete="current-password" minlength="8" required></label>
+      <div class="actions" style="grid-column: 1 / -1">
+        <button class="primary" type="submit" id="signinBtn">Sign in</button>
+        <button class="ghost" type="button" id="toggleSignup">First time? Create your account</button>
+        <button class="ghost" type="button" id="closeSignin">Back to the list</button>
+      </div>
+      <p class="msg" id="signinMsg" role="status" style="grid-column: 1 / -1"></p>
+    </form>
+  </section>
+
+  <section id="mineSec" hidden>
+    <h2 style="margin-bottom:10px">You're getting these</h2>
+    <div class="list" id="mineList"></div>
+  </section>
+
+  <section>
+    <div class="chips" role="group" aria-label="Filter" style="margin-bottom:12px">
+      <button type="button" data-f="all" aria-pressed="true">Everything</button>
+      <button type="button" data-f="need" aria-pressed="false">Needs</button>
+      <button type="button" data-f="want" aria-pressed="false">Wants</button>
+    </div>
+    <p class="msg" id="listMsg" role="status"></p>
+    <div class="list" id="list"><div class="empty">Loading the list…</div></div>
+  </section>
+
+  <footer><button class="ghost" type="button" id="ownerLink">Trey? Sign in to edit</button></footer>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+// ---- Config: filled in at deploy time. The publishable key is safe to ship; row-level security does the guarding.
+const SUPABASE_URL = "https://vyoocnviaqoejpazbxcx.supabase.co";
+const SUPABASE_KEY = "sb_publishable_Bft0e3wHCW1bHJl22gEcfg_5wEIsaSH";
+const OWNER_NAME = "Trey";
+
+const $ = (id) => document.getElementById(id);
+const PRIORITY = { 1: "Really want", 2: "Would like", 3: "Nice to have" };
+const money = new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" });
+const state = { mode: "shop", items: [], claims: new Map(), filter: "all", editing: null, openClaim: null, signup: false };
+
+function el(tag, attrs = {}, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === "class") n.className = v;
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+    else n.setAttribute(k, v === true ? "" : v);
+  }
+  for (const k of kids.flat()) if (k != null && k !== false) n.append(k instanceof Node ? k : document.createTextNode(String(k)));
+  return n;
+}
+function msg(node, text, kind) { node.textContent = text || ""; node.className = "msg" + (kind ? " " + kind : ""); }
+const safeUrl = (u) => (typeof u === "string" && /^https?:\/\//i.test(u) ? u : null);
+
+// ---- per-browser claim tokens (lets a shopper undo their own claim)
+function loadTokens() { try { return JSON.parse(localStorage.getItem("wl_tokens") || "{}"); } catch { return {}; } }
+function saveTokens(t) { try { localStorage.setItem("wl_tokens", JSON.stringify(t)); } catch {} }
+function newToken() {
+  const b = new Uint8Array(24); crypto.getRandomValues(b);
+  return btoa(String.fromCharCode(...b)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+document.querySelectorAll(".chips button").forEach((b) => b.addEventListener("click", () => {
+  state.filter = b.dataset.f;
+  document.querySelectorAll(".chips button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  render();
+}));
+
+if (!window.supabase || SUPABASE_URL.startsWith("__")) {
+  $("setup").hidden = false;
+  $("list").replaceChildren();
+} else {
+  start();
+}
+
+function start() {
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  window.__sb = sb;
+
+  async function loadShop() {
+    const tokens = Object.values(loadTokens());
+    const { data, error } = await sb.rpc("wishlist_shared_list", { p_tokens: tokens });
+    if (error) { msg($("listMsg"), "The list didn't load. Refresh to try again.", "err"); return; }
+    state.items = data || [];
+    msg($("listMsg"), "");
+    render();
+  }
+
+  async function loadOwner() {
+    const { data, error } = await sb.from("wishlist_items").select("*").order("kind").order("priority").order("created_at");
+    if (error) { msg($("listMsg"), "Couldn't load your items: " + error.message, "err"); return; }
+    state.items = data || [];
+    state.claims = new Map();
+    if ($("reveal").checked) {
+      const c = await sb.from("wishlist_claims").select("item_id, claimer_name, created_at");
+      if (!c.error) for (const r of c.data) state.claims.set(r.item_id, r);
+    }
+    msg($("listMsg"), "");
+    render();
+  }
+
+  async function refresh() { return state.mode === "owner" ? loadOwner() : loadShop(); }
+  window.__refresh = refresh;
+
+  async function setSession(session) {
+    if (session) {
+      // Only the owner's account can exist in this project, but check anyway.
+      const probe = await sb.rpc("wishlist_is_owner");
+      if (probe.data === true) {
+        state.mode = "owner";
+        $("owner").hidden = false; $("signin").hidden = true; $("ownerLink").hidden = true;
+        $("eyebrow").textContent = "Your list";
+        $("lede").textContent = "Add, edit or remove things here. Family and friends see the same list, minus anything someone has already claimed.";
+        return loadOwner();
+      }
+      await sb.auth.signOut();
+      msg($("signinMsg"), "That account can't edit this list.", "err");
+    }
+    state.mode = "shop";
+    $("owner").hidden = true; $("ownerLink").hidden = false;
+    $("eyebrow").textContent = "Wish list";
+    $("lede").replaceChildren("Pick something, tap ", el("strong", {}, "I'll get this"), ", and it comes off the list so nobody else buys it too.");
+    return loadShop();
+  }
+
+  // ---- shopper actions
+  async function claim(item, name, btn) {
+    btn.disabled = true;
+    const tokens = loadTokens();
+    const token = tokens[item.id] || newToken();
+    const { data, error } = await sb.rpc("wishlist_claim_item", { p_item: item.id, p_token: token, p_name: name || null });
+    if (error) { btn.disabled = false; msg($("listMsg"), "That didn't go through. Try again.", "err"); return; }
+    if (data === "claimed") { tokens[item.id] = token; saveTokens(tokens); msg($("listMsg"), `Got it. "${item.name}" is off the list for everyone else.`, "ok"); }
+    else if (data === "taken") msg($("listMsg"), `Someone already claimed "${item.name}". Pick something else?`, "err");
+    else msg($("listMsg"), `"${item.name}" was just removed from the list.`, "err");
+    state.openClaim = null;
+    await loadShop();
+  }
+  async function unclaim(item, btn) {
+    btn.disabled = true;
+    const tokens = loadTokens();
+    const { error } = await sb.rpc("wishlist_unclaim_item", { p_item: item.id, p_token: tokens[item.id] || "" });
+    if (error) { btn.disabled = false; msg($("listMsg"), "That didn't go through. Try again.", "err"); return; }
+    delete tokens[item.id]; saveTokens(tokens);
+    msg($("listMsg"), `"${item.name}" is back on the list.`, "ok");
+    await loadShop();
+  }
+
+  // ---- owner actions
+  function fillForm(item) {
+    state.editing = item ? item.id : null;
+    $("f_name").value = item?.name || ""; $("f_url").value = item?.url || "";
+    $("f_price").value = item?.price ?? ""; $("f_kind").value = item?.kind || "want";
+    $("f_priority").value = String(item?.priority || 2); $("f_notes").value = item?.notes || "";
+    $("formTitle").textContent = item ? "Edit item" : "Add something";
+    $("saveBtn").textContent = item ? "Save changes" : "Add to list";
+    $("cancelEdit").hidden = !item;
+    msg($("formMsg"), "");
+    if (item) { $("owner").scrollIntoView({ behavior: "smooth", block: "start" }); $("f_name").focus(); }
+  }
+  $("cancelEdit").addEventListener("click", () => fillForm(null));
+  $("itemForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const url = $("f_url").value.trim();
+    if (url && !safeUrl(url)) { msg($("formMsg"), "Links need to start with https:// or http://", "err"); return; }
+    const row = {
+      name: $("f_name").value.trim(), url: url || null,
+      price: $("f_price").value === "" ? null : Number($("f_price").value),
+      kind: $("f_kind").value, priority: Number($("f_priority").value),
+      notes: $("f_notes").value.trim() || null,
+    };
+    if (!row.name) { msg($("formMsg"), "Give it a name first.", "err"); return; }
+    $("saveBtn").disabled = true;
+    const q = state.editing ? sb.from("wishlist_items").update(row).eq("id", state.editing) : sb.from("wishlist_items").insert(row);
+    const { error } = await q;
+    $("saveBtn").disabled = false;
+    if (error) { msg($("formMsg"), "Didn't save: " + error.message, "err"); return; }
+    const was = state.editing;
+    fillForm(null);
+    msg($("formMsg"), was ? "Saved." : "Added.", "ok");
+    loadOwner();
+  });
+  async function removeItem(item, btn) {
+    if (btn.dataset.confirm !== "1") { btn.dataset.confirm = "1"; btn.textContent = "Tap again to delete"; setTimeout(() => { btn.dataset.confirm = ""; btn.textContent = "Delete"; }, 4000); return; }
+    btn.disabled = true;
+    const { error } = await sb.from("wishlist_items").delete().eq("id", item.id);
+    if (error) { btn.disabled = false; msg($("listMsg"), "Didn't delete: " + error.message, "err"); return; }
+    if (state.editing === item.id) fillForm(null);
+    msg($("listMsg"), `Removed "${item.name}".`, "ok");
+    loadOwner();
+  }
+  async function releaseClaim(item, btn) {
+    btn.disabled = true;
+    const { error } = await sb.from("wishlist_claims").delete().eq("item_id", item.id);
+    if (error) { btn.disabled = false; return; }
+    msg($("listMsg"), `"${item.name}" is back on the shared list.`, "ok");
+    loadOwner();
+  }
+  $("reveal").addEventListener("change", () => loadOwner());
+
+  // ---- sign in
+  $("ownerLink").addEventListener("click", () => { $("signin").hidden = false; $("s_email").focus(); });
+  $("closeSignin").addEventListener("click", () => { $("signin").hidden = true; });
+  $("toggleSignup").addEventListener("click", () => {
+    state.signup = !state.signup;
+    $("signinTitle").textContent = state.signup ? "Create your owner account" : "Sign in to edit your list";
+    $("signinBtn").textContent = state.signup ? "Create account" : "Sign in";
+    $("toggleSignup").textContent = state.signup ? "Already set up? Sign in" : "First time? Create your account";
+    $("s_pass").autocomplete = state.signup ? "new-password" : "current-password";
+    msg($("signinMsg"), "");
+  });
+  $("signinForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = $("s_email").value.trim(), password = $("s_pass").value;
+    $("signinBtn").disabled = true; msg($("signinMsg"), "");
+    if (state.signup) {
+      const { data, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: location.href.split("#")[0] } });
+      $("signinBtn").disabled = false;
+      if (error) { msg($("signinMsg"), error.message, "err"); return; }
+      if (data.session) return setSession(data.session);
+      msg($("signinMsg"), "Check your email and tap the confirmation link, then come back and sign in.", "ok");
+      $("toggleSignup").click();
+      return;
+    }
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    $("signinBtn").disabled = false;
+    $("s_pass").value = "";
+    if (error) { msg($("signinMsg"), error.message === "Email not confirmed" ? "Confirm your email first, using the link Supabase sent you." : "That email and password didn't match.", "err"); return; }
+    setSession(data.session);
+  });
+  $("signOut").addEventListener("click", async () => { await sb.auth.signOut(); $("reveal").checked = false; setSession(null); });
+
+  // ---- render
+  window.__render = function () {
+    const listEl = $("list"), mineEl = $("mineList");
+    const show = (i) => state.filter === "all" || i.kind === state.filter;
+    const owner = state.mode === "owner";
+    const card = (item) => {
+      const link = safeUrl(item.url);
+      const claimRec = owner ? state.claims.get(item.id) : null;
+      const pills = [
+        el("span", { class: "pill" + (item.kind === "need" ? " need" : "") }, item.kind === "need" ? "Need" : "Want"),
+        el("span", { class: "pill" + (item.priority === 1 ? " p1" : "") }, PRIORITY[item.priority] || "Would like"),
+        claimRec ? el("span", { class: "pill claimed" }, "Claimed" + (claimRec.claimer_name ? " by " + claimRec.claimer_name : "")) : null,
+      ];
+      const actions = el("div", { class: "actions" });
+      if (owner) {
+        actions.append(
+          el("button", { type: "button", onclick: () => fillForm(item) }, "Edit"),
+          el("button", { type: "button", class: "danger", onclick: (e) => removeItem(item, e.currentTarget) }, "Delete"),
+        );
+        if (claimRec) actions.append(el("button", { type: "button", class: "ghost", onclick: (e) => releaseClaim(item, e.currentTarget) }, "Put back on list"));
+      } else if (item.mine) {
+        actions.append(el("button", { type: "button", onclick: (e) => unclaim(item, e.currentTarget) }, "Undo, I'm not getting it"));
+      } else if (state.openClaim === item.id) {
+        const nameId = "n_" + item.id;
+        const nameIn = el("input", { id: nameId, maxlength: "80", placeholder: "e.g. Aunt Jo", autocomplete: "name" });
+        actions.append(el("div", { class: "claimbox", style: "width:100%" },
+          el("label", { for: nameId }, `Your name (optional). ${OWNER_NAME} won't see it unless he peeks.`),
+          nameIn,
+          el("div", { class: "actions" },
+            el("button", { type: "button", class: "primary", onclick: (e) => claim(item, nameIn.value.trim(), e.currentTarget) }, "Yes, I'm getting it"),
+            el("button", { type: "button", class: "ghost", onclick: () => { state.openClaim = null; render(); } }, "Cancel"))));
+      } else {
+        actions.append(el("button", { type: "button", class: "primary", onclick: () => { state.openClaim = item.id; render(); } }, "I'll get this"));
+      }
+      return el("article", { class: "tag" + (item.priority === 1 ? " p1" : "") + (item.mine ? " mine" : "") },
+        el("div", { class: "row" },
+          el("div", { class: "name" }, link ? el("a", { href: link, target: "_blank", rel: "noopener noreferrer" }, item.name) : item.name),
+          item.price != null ? el("span", { class: "price" }, money.format(item.price)) : null),
+        el("div", { class: "meta" }, pills),
+        item.notes ? el("p", { class: "notes" }, item.notes) : null,
+        actions);
+    };
+    const mine = owner ? [] : state.items.filter((i) => i.mine);
+    const rest = state.items.filter((i) => !i.mine && show(i));
+    $("mineSec").hidden = mine.length === 0;
+    mineEl.replaceChildren(...mine.map(card));
+    if (rest.length) listEl.replaceChildren(...rest.map(card));
+    else listEl.replaceChildren(el("div", { class: "empty" },
+      owner ? "Your list is empty. Add the first thing above."
+        : state.items.length ? "Nothing here under this filter." : `Everything's been claimed, or ${OWNER_NAME} hasn't added anything yet.`));
+  };
+
+  sb.auth.getSession().then(({ data }) => setSession(data.session));
+  sb.auth.onAuthStateChange((evt, session) => { if (evt === "SIGNED_OUT") setSession(null); });
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
+}
+function render() { if (window.__render) window.__render(); }
+</script>
+</body>
+</html>
