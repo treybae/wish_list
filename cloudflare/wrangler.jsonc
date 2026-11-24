@@ -1,0 +1,24 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "wishlist",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-11-01",
+  // The page and its script are static assets; only /api/* runs the Worker.
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "wishlist",
+      "database_id": "8ea623d2-6644-430e-a3aa-93d823d0719f",
+      "migrations_dir": "migrations"
+    }
+  ],
+  // Needs treybae.net to be a zone in this Cloudflare account.
+  "routes": [{ "pattern": "wishlist.treybae.net", "custom_domain": true }],
+  "workers_dev": true,
+  "observability": { "enabled": true }
+}
